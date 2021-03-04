@@ -1,9 +1,23 @@
 const express = require('express');
-const app = express()  // serve per far andare il server 
+const connectDB = require('./Config/db');
+
+const app = express(); // serve per far andare il server
+
+//mi connnetto al server
+connectDB();
+
+//Inizializzo il middleware
+app.use(express.json({ xtended: false }));
 
 //Creo una risposta ad una get sulla porta 5000
-app.get('/', (req, res) => res.send('API partita'))
+app.get('/', (req, res) => res.send('API partita'));
+
+// Define Routes
+app.use('/api/users', require('./routes/api/users'));
+app.use('/api/auth', require('./routes/api/auth'));
+app.use('/api/posts', require('./routes/api/posts'));
+app.use('/api/profile', require('./routes/api/profile'));
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => console.log(`Server started on port ${PORT}`))
+app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
