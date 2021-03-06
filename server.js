@@ -12,7 +12,7 @@ app.use(express.json({ xtended: false }));
 //Creo una risposta ad una get sulla porta 5000
 app.get('/', (req, res) => res.send('API partita'));
 
-// Define Routes
+// Definisco i percorsi delle API
 app.use('/api/users', require('./routes/api/users'));
 app.use('/api/auth', require('./routes/api/auth'));
 app.use('/api/posts', require('./routes/api/posts'));
