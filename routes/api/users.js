@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const gravatar = require('gravatar');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const config = require('config');
 const { check, validationResult } = require('express-validator'); //https://express-validator.github.io/docs/
 
 //richiamo il modello dell'utente
@@ -57,8 +59,25 @@ router.post(
 
       //salvo l'utente nel DB
       await user.save();
+
       //Return jsonwebtoken  (nel frontend voglio che l'utente venga loggato subito con il token)
-      res.send('Utente registrato');
+      // https://github.com/auth0/node-jsonwebtoken
+
+      const payload = {
+        user: {
+          id: user.id,
+        },
+      };
+
+      jwt.sign(
+        payload,
+        config.get('jwtSecret'),
+        { expiresIn: 360000 }, //dovrebbe essere un ora quindi 3600, metto di più per debuggare meglio
+        (err, token) => {
+          if (err) throw err;
+          res.json({ token }); //ritorna il token nella POST, con JWT posso vedere il contenuto https://jwt.io/#debugger-io
+        }
+      );
     } catch (err) {
       console.error(err.message);
       res.status(500).send('Server error');
