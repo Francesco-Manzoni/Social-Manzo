@@ -8,7 +8,7 @@ $max-width: 1100px;
 //Imposta colore del testo in base allo sfondo
 //se il colore è chiaro ritorna un colore scuro e viceversa
 @function set-text-color($color) {
-  @if (lightness($color) > 50) {
+  @if (lightness($color) > 55) {
     @return #333;
   } @else {
     @return #fff;
@@ -19,4 +19,29 @@ $max-width: 1100px;
 @mixin set-background($color) {
   background-color: $color;
   color: set-text-color($color);
+}
+
+//Marign e padding
+$spaceamounts: (1, 2, 3, 4, 5);
+
+@each $space in $spaceamounts {
+  //fa loop sulla variabile sopra e per ogni giro mette dentro space il numero
+  .m-#{$space} {
+    margin: #{$space}rem;
+  }
+
+  //margine verticale
+  .my-#{$space} {
+    margin: #{$space}rem 0;
+  }
+
+  //mette padding ovunque
+  .p-#{$space} {
+    padding: #{$space}rem;
+  }
+
+  //mette padding verticale
+  .py-#{$space} {
+    padding: #{$space}rem 0;
+  }
 }
