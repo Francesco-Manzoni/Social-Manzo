@@ -6,7 +6,10 @@ import { connect } from 'react-redux';
 import { setAlert } from '../../actions/alert';
 import PropTypes from 'prop-types';
 
-const Register = ({ setAlert }) => {
+//per la registrazione
+import { register } from '../../actions/auth';
+
+const Register = ({ setAlert, register }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -24,7 +27,7 @@ const Register = ({ setAlert }) => {
     if (password !== password2) {
       setAlert('Password non corrispondono', 'danger'); //il secondo campo serve per i css
     } else {
-      console.log('FATTO');
+      register({ name, email, password });
     }
   };
 
@@ -91,6 +94,7 @@ const Register = ({ setAlert }) => {
 //dichiaro set alert qua così la possiamo chiamare dentro i props di Register
 Register.propTypes = {
   setAlert: PropTypes.func.isRequired,
+  register: PropTypes.func.isRequired,
 };
 
-export default connect(null, { setAlert })(Register);
+export default connect(null, { setAlert, register })(Register);
