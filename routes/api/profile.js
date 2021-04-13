@@ -3,6 +3,7 @@ const router = express.Router();
 const auth = require('../../middleware/auth');
 const Profile = require('../../models/Profile');
 const User = require('../../models/User');
+const Post = require('../../models/Post');
 const { check, validationResult } = require('express-validator');
 const request = require('request');
 const config = require('config');
@@ -146,7 +147,8 @@ router.get('/user/:user_id', async (req, res) => {
 // @access Private
 router.delete('/', auth, async (req, res) => {
   try {
-    // DA FARE - Cancello i post dell'utente
+    // Cancello i post dell'utente
+    await Post.deleteMany({ user: req.user.id });
 
     //Cancello il profilo
     await Profile.findOneAndRemove({ user: req.user.id });
@@ -223,23 +225,17 @@ router.put(
 // @access Private
 router.delete('/experience/:exp_id', auth, async (req, res) => {
   try {
-    const profile = await Profile.findOne({ user: req.user.id });
-    if (!profile) {
-      return res.status(400).json({ msg: 'Profilo non trovato' });
-    }
+    const foundProfile = await Profile.findOne({ user: req.user.id });
 
-    //ottengo id da rimuovere
-    const removeIndex = profile.experience
-      .map((item) => item.id)
-      .indexOf(req.params.exp_id);
+    foundProfile.experience = foundProfile.experience.filter(
+      (exp) => exp._id.toString() !== req.params.exp_id
+    );
 
-    profile.experience.splice(removeIndex, 1);
-
-    await profile.save();
-    res.json({ profile });
+    await foundProfile.save();
+    return res.status(200).json(foundProfile);
   } catch (error) {
-    console.error(error.message);
-    res.status(500).send('Server error');
+    console.error(error);
+    return res.status(500).json({ msg: 'Server error' });
   }
 });
 
@@ -308,23 +304,15 @@ router.put(
 // @access Private
 router.delete('/education/:edu_id', auth, async (req, res) => {
   try {
-    const profile = await Profile.findOne({ user: req.user.id });
-    if (!profile) {
-      return res.status(400).json({ msg: 'Profilo non trovato' });
-    }
-
-    //ottengo id da rimuovere
-    const removeIndex = profile.education
-      .map((item) => item.id)
-      .indexOf(req.params.edu_id);
-
-    profile.education.splice(removeIndex, 1);
-
-    await profile.save();
-    res.json({ profile });
+    const foundProfile = await Profile.findOne({ user: req.user.id });
+    foundProfile.education = foundProfile.education.filter(
+      (edu) => edu._id.toString() !== req.params.edu_id
+    );
+    await foundProfile.save();
+    return res.status(200).json(foundProfile);
   } catch (error) {
-    console.error(error.message);
-    res.status(500).send('Server error');
+    console.error(error);
+    return res.status(500).json({ msg: 'Server error' });
   }
 });
 
