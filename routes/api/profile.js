@@ -336,7 +336,8 @@ router.get('/github/:username', (req, res) => {
     request(options, (error, response, body) => {
       if (error) console.error(error);
       if (response.statusCode !== 200) {
-        return res.status(404).json({ msg: 'prfilo github non trovato' });
+        //console.log(response.body);
+        return res.status(404).json({ msg: 'profilo github non trovato' });
       }
 
       res.json(JSON.parse(body));
@@ -346,4 +347,5 @@ router.get('/github/:username', (req, res) => {
     res.status(500).send('Server error');
   }
 });
+
 module.exports = router;
