@@ -13,6 +13,7 @@ import EditProfile from './components/profile-forms/EditProfile';
 import AddExperience from './components/profile-forms/AddExperience';
 import AddEducation from './components/profile-forms/AddEducation';
 import Posts from './components/posts/Posts';
+import Post from './components/posts/singlePost/Post';
 import Profiles from './components/profiles/Profiles';
 import Profile from './components/profile/Profile';
 
@@ -67,6 +68,7 @@ const App = () => {
                 component={AddEducation}
               />
               <PrivateRoute exact path='/posts' component={Posts} />
+              <PrivateRoute exact path='/posts/:id' component={Post} />
             </Switch>
           </section>
         </Fragment>
