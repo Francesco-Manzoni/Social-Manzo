@@ -7,7 +7,8 @@
     "start": "node server",
     "server": "nodemon server",
     "client": "npm start --prefix client",
-    "dev": "concurrently \"npm run server\" \"npm run client\""
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "test": "mocha || true"
   },
   "repository": {
     "type": "git",
@@ -31,7 +32,10 @@
     "request": "^2.88.2"
   },
   "devDependencies": {
+    "chai": "^4.3.4",
+    "chai-http": "^4.3.0",
     "concurrently": "^6.0.0",
+    "mocha": "^8.3.2",
     "nodemon": "^2.0.7"
   }
 }
