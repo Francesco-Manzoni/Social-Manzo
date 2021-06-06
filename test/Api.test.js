@@ -39,7 +39,7 @@ describe('Autenticazione', () => {
       it('Login corretto', (done) => {
         let body = {
           email: 'francesco.manzoni1996@gmail.com',
-          password: 'Prova1234@5',
+          password: '12345678',
         };
         chai
           .request(server)
@@ -98,7 +98,7 @@ describe('Autenticazione', () => {
             res.body.should.be.a('object');
             res.body.should.have
               .property('_id')
-              .eql('6044b254a5a0ed20ec7a9bef');
+              .eql('60a51d1913a02726d0e4f634');
             done();
           });
       });
@@ -131,11 +131,11 @@ describe('Autenticazione', () => {
             res.should.be.a('Object');
             res.body.should.have
               .property('_id')
-              .eql('6047c13fddbba444d0bb1940');
+              .eql('60a51dd413a02726d0e4f635');
             res.body.should.have
               .property('user')
               .that.have.property('_id')
-              .eql('6044b254a5a0ed20ec7a9bef');
+              .eql('60a51d1913a02726d0e4f634');
             res.body.should.have.property('social');
             res.body.should.have.property('skills');
             res.body.should.have.property('experience');
@@ -167,7 +167,7 @@ describe('Autenticazione', () => {
       it('Ottieni singolo profilo', (done) => {
         chai
           .request(server)
-          .get('/api/profile/user/6044b254a5a0ed20ec7a9bef')
+          .get('/api/profile/user/60a51d1913a02726d0e4f634')
           .end((err, res) => {
             res.should.have.status(200);
             res.should.be.a('Object');
@@ -434,4 +434,3 @@ describe('Autenticazione', () => {
     });
   });
 });
-//describe('Test Api dei Posts', () => {})
