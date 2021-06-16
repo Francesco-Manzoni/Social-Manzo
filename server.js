@@ -1,5 +1,5 @@
 const express = require('express');
-const connectDB = require('./Config/db');
+const connectDB = require('./config/db');
 const path = require('path');
 
 const app = express(); // serve per far andare il server
@@ -8,7 +8,8 @@ const app = express(); // serve per far andare il server
 connectDB();
 
 //Inizializzo il middleware
-app.use(express.json({ xtended: false }));
+//app.use(express.json({ xtended: false }));
+app.use(express.json());
 
 //Creo una risposta ad una get sulla porta 5000
 //app.get('/', (req, res) => res.send('API partita'));
@@ -21,7 +22,7 @@ app.use('/api/profile', require('./routes/api/profile'));
 
 //Per heroku
 if (process.env.NODE_ENV === 'production') {
-  //imposto cartella statica
+  // Set static folder
   app.use(express.static('client/build'));
 
   app.get('*', (req, res) => {
