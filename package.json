@@ -39,8 +39,5 @@
     "concurrently": "^6.1.0",
     "mocha": "^8.4.0",
     "nodemon": "^2.0.7"
-  },
-  "jest": {
-    "verbose": true
   }
 }
