@@ -1,5 +1,5 @@
 const express = require('express');
-const connectDB = require('./onfig/db');
+const connectDB = require('./config/db');
 const path = require('path');
 
 const app = express(); // serve per far andare il server
