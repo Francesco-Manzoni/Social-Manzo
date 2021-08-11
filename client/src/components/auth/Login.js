@@ -33,9 +33,10 @@ const Login = ({ login, isAuthenticated }) => {
         Loggati per vedere il tuo profilo
       </p>
 
-      <form onSubmit={(e) => onSubmit(e)} className='form'>
+      <form onSubmit={(e) => onSubmit(e)} className='form' data-testid='form'>
         <div className='form-group'>
           <input
+            data-testid='email'
             type='email'
             placeholder='Email'
             name='email'
@@ -46,6 +47,7 @@ const Login = ({ login, isAuthenticated }) => {
         </div>
         <div className='form-group'>
           <input
+            data-testid='password'
             type='password'
             placeholder='Password'
             name='password'
@@ -55,7 +57,12 @@ const Login = ({ login, isAuthenticated }) => {
           />
         </div>
 
-        <input type='submit' value='Login' className='btn btn-primary' />
+        <input
+          data-testid='LoginButton'
+          type='submit'
+          value='Login'
+          className='btn btn-primary'
+        />
       </form>
       <p className='my-1'>
         Non hai un account? <Link to='/register'>Registrati</Link>

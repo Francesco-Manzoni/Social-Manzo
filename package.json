@@ -22,22 +22,27 @@
   },
   "homepage": "https://github.com/Francesco-Manzoni/Social-Manzo#readme",
   "dependencies": {
+    "@reduxjs/toolkit": "^1.6.1",
     "axios": "^0.21.1",
     "bcryptjs": "^2.4.3",
     "config": "^3.3.6",
     "express": "^4.17.1",
-    "express-validator": "^6.11.1",
+    "express-validator": "^6.12.0",
     "gravatar": "^1.8.1",
     "jsonwebtoken": "^8.5.1",
-    "mongoose": "^5.12.9",
+    "mongoose": "^5.13.3",
     "request": "^2.88.2",
-    "selenium-webdriver": "^4.0.0-beta.3"
+    "selenium-webdriver": "^4.0.0-beta.4"
   },
   "devDependencies": {
+    "@testing-library/dom": "^8.1.0",
+    "@testing-library/react": "^12.0.0",
     "chai": "^4.3.4",
     "chai-http": "^4.3.0",
-    "concurrently": "^6.1.0",
+    "concurrently": "^6.2.0",
     "mocha": "^8.4.0",
-    "nodemon": "^2.0.7"
+    "mocha-jsdom": "^2.0.0",
+    "msw": "^0.32.2",
+    "nodemon": "^2.0.12"
   }
 }

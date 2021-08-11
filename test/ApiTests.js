@@ -25,7 +25,7 @@ describe('Autenticazione', () => {
         .post('/api/users')
         .send(body)
         .end((err, res) => {
-          res.should.have.status(200);
+          res.should.have.status(200); //verifico che risposta abbia successo
           res.body.should.be.a('object');
           token = res.body.token;
           done();
