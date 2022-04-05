@@ -41,14 +41,14 @@ export default function foo(state = initialState, action) {
       return {
         ...state,
         posts: state.posts.map((post) =>
-          post._id === payload.postId ? { ...post, likes: payload.likes } : post
+          post.pid === payload.postId ? { ...post, likes: payload.likes } : post
         ),
         loading: false,
       };
     case DELETE_POST:
       return {
         ...state,
-        posts: state.posts.filter((post) => post._id !== payload),
+        posts: state.posts.filter((post) => post.pid !== payload),
         loading: false,
       };
     case ADD_POST:
@@ -68,7 +68,7 @@ export default function foo(state = initialState, action) {
         ...state,
         post: {
           ...state.post,
-          comments: state.post.comments.filter((comm) => comm._id !== payload),
+          comments: state.post.comments.filter((comm) => comm.cid !== payload),
         },
         loading: false,
       };

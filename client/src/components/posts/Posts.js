@@ -21,7 +21,7 @@ const Posts = ({ getPosts, post: { posts, loading } }) => {
       <PostCreate />
       <div className='posts'>
         {posts.map((post) => (
-          <PostItem key={post._id} post={post} />
+          <PostItem key={post.pid} post={post} />
         ))}
       </div>
     </Fragment>

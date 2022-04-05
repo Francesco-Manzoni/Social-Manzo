@@ -1,11 +1,21 @@
 const express = require('express');
-const connectDB = require('./config/db');
+//const connectDB = require('./config/db');
 const path = require('path');
-
+const pool = require('./config/db');
 const app = express(); // serve per far andare il server
 
 //mi connnetto al server
+ async function connectDB() {
+  try {
+    await pool.query('SELECT NOW()');
+    console.log('DB connected');
+  } catch (err) {
+    console.error(err.message);
+    process.exit(1);
+  }
+} 
 connectDB();
+
 
 //Inizializzo il middleware
 //app.use(express.json({ xtended: false }));

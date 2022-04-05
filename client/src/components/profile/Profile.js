@@ -30,7 +30,7 @@ const Profile = ({
           </Link>
           {auth.isAuthenticated &&
             auth.loading === false &&
-            auth.user._id === profile.user.id && (
+            auth.user.uid === profile.userid && (
               <Link to='/edit-profile' className='btn btn-dark'>
                 Modifica Profilo
               </Link>
@@ -44,7 +44,7 @@ const Profile = ({
                 <Fragment>
                   {profile.experience.map((experience) => (
                     <ProfileExperience
-                      key={experience._id}
+                      key={experience.eid}
                       experience={experience}
                     />
                   ))}
@@ -60,7 +60,7 @@ const Profile = ({
                 <Fragment>
                   {profile.education.map((education) => (
                     <ProfileEducation
-                      key={education._id}
+                      key={education.eid}
                       education={education}
                     />
                   ))}

@@ -10,7 +10,7 @@ const PostItem = ({
   removeLike,
   deletePost,
   auth,
-  post: { _id, text, name, avatar, user, likes, comments, date },
+  post: { pid, text, name, avatar, user, likes, comments, date },
   showActions,
 }) => (
   <div className='post bg-white my-1 p-1'>
@@ -24,24 +24,24 @@ const PostItem = ({
       <p className='my-1'>{text}</p>
       {showActions && (
         <Fragment>
-          <button onClick={(a) => addLike(_id)} className='btn'>
+          <button onClick={(a) => addLike(pid)} className='btn'>
             <i className='fas fa-thumbs-up'></i>{' '}
             {likes.length > 0 && (
               <span className='likes-count'>{likes.length}</span>
             )}
           </button>
-          <button onClick={(a) => removeLike(_id)} className='btn'>
+          <button onClick={(a) => removeLike(pid)} className='btn'>
             <i className='fas fa-thumbs-down'></i>
           </button>
-          <Link to={`/posts/${_id}`} className='btn btn-light'>
+          <Link to={`/posts/${pid}`} className='btn btn-light'>
             Commenti{' '}
             {comments.length > 0 && (
               <span className='comment-count'>{comments.length}</span>
             )}
           </Link>
-          {!auth.loading && user === auth.user._id && (
+          {!auth.loading && user === auth.user.uid && (
             <button
-              onClick={(e) => deletePost(_id)}
+              onClick={(e) => deletePost(pid)}
               type='button'
               className='btn btn-danger'
             >

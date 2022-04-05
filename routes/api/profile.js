@@ -1,22 +1,74 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../../middleware/auth');
-const Profile = require('../../models/Profile');
-const User = require('../../models/User');
-const Post = require('../../models/Post');
 const { check, validationResult } = require('express-validator');
 const request = require('request');
 const config = require('config');
 const { response } = require('express');
+const pool = require('../../config/db');
+
+async function asyncForEach(array, callback) {
+  for (let index = 0; index < array.length; index++) {
+    await callback(array[index], index, array);
+  }
+}
+
+
+
+//funzione asincrona che ritorna profilo completo di nome utente, experience e education
+async function getProfile(user_id) {
+  try {
+    
+    const q_profile = await pool.query(
+    'SELECT * FROM profile JOIN users ON profile.userid = users.uid WHERE profile.userid = $1',
+    [user_id]
+  );
+  const profile = q_profile.rows[0];
+  if (profile) {
+    Object.assign(profile, {user: {name: profile.name, avatar: profile.avatar}});
+    delete profile.name;
+    delete profile.avatar;
+    delete profile.password;
+    delete profile.email;
+    delete profile.uid;
+
+    //trovo le experience
+    const q_experience = await pool.query(
+      'SELECT * FROM experience WHERE uid = $1',
+      [user_id]
+    );
+    if (q_experience.rows.length > 0) {
+      profile.experience = q_experience.rows;
+    }
+    else {
+      profile.experience = [];
+    }
+    //trovo le education
+    const q_education = await pool.query(
+      'SELECT * FROM education WHERE uid = $1',
+      [user_id]
+    );
+    if (q_education.rows.length > 0) {
+      profile.education = q_education.rows;
+    }
+    else {
+      profile.education = [];
+    }
+
+    return profile;
+
+  }} catch (err) {
+    console.error(err.message);
+    return err}}
+
+
 
 // @route GET api/profile/me
 // @desc Get profilo utente attuale
 // @access Private
 router.get('/me', auth, async (req, res) => {
   try {
-    const profile = await Profile.findOne({ user: req.user.id }) //Ottengo profilo utente dall'userid
-      .populate('user', ['name', 'avatar']); //popolo anche il campo user con nome e avatar
-
+    const profile = await getProfile(req.user.id);
     if (!profile) {
       return res
         .status(400)
@@ -76,28 +128,73 @@ router.post(
     }
 
     //Creo oggetto social
-    profileFields.social = {};
-    if (youtube) profileFields.social.youtube = youtube;
-    if (twitter) profileFields.social.twitter = twitter;
-    if (facebook) profileFields.social.facebook = facebook;
-    if (instagram) profileFields.social.instagram = instagram;
-    if (linkedin) profileFields.social.linkedin = linkedin;
+
+    if (youtube) profileFields.youtube = youtube;
+    if (twitter) profileFields.twitter = twitter;
+    if (facebook) profileFields.facebook = facebook;
+    if (instagram) profileFields.instagram = instagram;
+    if (linkedin) profileFields.linkedin = linkedin;
+
 
     try {
-      let profile = await Profile.findOne({ user: req.user.id });
+      //let profile = await Profile.findOne({ user: req.user.id });
+      let profile = await getProfile(req.user.id);
       if (profile) {
         //Update entry nel db
-        profile = await Profile.findOneAndUpdate(
-          { user: req.user.id },
-          { $set: profileFields },
-          { new: true }
+        let q_update = await pool.query(
+          'UPDATE profile SET company = $1, website = $2, location = $3, bio = $4, status = $5, githubusername = $6, skills = $7, youtube = $8, facebook = $9, twitter = $10, instagram = $11, linkedin = $12 WHERE userid = $13',
+          [
+            profileFields.company,
+            profileFields.website,
+            profileFields.location,
+            profileFields.bio,
+            profileFields.status,
+            profileFields.githubusername,
+            profileFields.skills,
+            profileFields.youtube,
+            profileFields.facebook,
+            profileFields.twitter,
+            profileFields.instagram,
+            profileFields.linkedin,
+            profileFields.user,
+            
+          ]
         );
+        if (q_update.rowCount = 0) {
+          throw new Error('Errore aggiornamento profilo');
+        }
+        profile = await getProfile(req.user.id);
         return res.json(profile);
-      }
-
+      } 
+ 
       //creo il profilo
-      profile = new Profile(profileFields);
-      await profile.save();
+      /* profile = new Profile(profileFields);
+      await profile.save(); */
+      let q_create = await pool.query(
+        'INSERT INTO profile (userid, company, website, location, bio, status, githubusername, skills, youtube, facebook, twitter, instagram, linkedin) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)',
+        [
+          profileFields.user,
+          profileFields.company,
+          profileFields.website,
+          profileFields.location,
+          profileFields.bio,
+          profileFields.status,
+          profileFields.githubusername,
+          profileFields.skills,
+          profileFields.youtube,
+          profileFields.facebook,
+          profileFields.twitter,
+          profileFields.instagram,
+          profileFields.linkedin,
+          
+        ]
+      );
+      if (q_create.rowCount = 0) {
+        throw new Error('Errore aggiornamento profilo');
+      }
+      
+      
+      profile = await getProfile(req.user.id);
       return res.json(profile);
     } catch (error) {
       console.log(error.message);
@@ -111,8 +208,56 @@ router.post(
 // @access Public
 router.get('/', async (req, res) => {
   try {
-    const profiles = await Profile.find().populate('user', ['name', 'avatar']);
-    res.json(profiles);
+    //ottengo tutti i profili dal db facendo join tra users e profile 
+    let q_profiles = await pool.query(
+      'SELECT * FROM profile'
+    );
+    let profiles = q_profiles.rows;
+    
+    //inserisco i campi name e avatar in profiles.user
+     await asyncForEach(profiles, async (profile) => {
+      let q_user = await pool.query(
+        'SELECT * FROM users WHERE uid = $1',
+        [profile.userid]
+      );
+      profile.user = q_user.rows[0];
+    /*   profile.user = {
+        id: profile.uid,
+        name: profile.name,
+        avatar: profile.avatar,
+      };
+      delete profile.uid;
+      delete profile.name;
+      delete profile.avatar; */
+      //trovo le experience
+    const q_experience = await pool.query(
+      'SELECT * FROM experience WHERE uid = $1',
+      [profile.user.uid]
+    );
+    
+    if (q_experience.rows.length > 0) {
+      //profile.experience = q_experience.rows;
+      Object.assign(profile, {experience: q_experience.rows });
+    }else 
+    {
+      Object.assign(profile, {experience: [] });
+      //profile.experience = [];
+    }
+    //trovo le education
+    const q_education = await pool.query(
+      'SELECT * FROM education WHERE uid = $1',
+      [profile.user.uid]
+    );
+    if (q_education.rows.length > 0) {
+      Object.assign(profile, {education: q_education.rows });
+      //profile.education = q_education.rows;
+    }else {
+      Object.assign(profile, {education: [] });
+    }
+    
+    });
+    
+    res.json(profiles); //TODO Sistemare educatio e profiles
   } catch (error) {
     console.log(error.message);
     return res.status(500).send('Server error');
@@ -124,10 +269,12 @@ router.get('/', async (req, res) => {
 // @access Public
 router.get('/user/:user_id', async (req, res) => {
   try {
-    const profile = await Profile.findOne({
+   /*  const profile = await Profile.findOne({
       user: req.params.user_id,
-    }).populate('user', ['name', 'avatar']);
+    }).populate('user', ['name', 'avatar']); */
 
+    const profile = await getProfile(req.params.user_id);
+    console.log(profile);
     if (!profile) {
       return res.status(400).json({ msg: 'Profilo non trovato' });
     }
@@ -148,13 +295,20 @@ router.get('/user/:user_id', async (req, res) => {
 router.delete('/', auth, async (req, res) => {
   try {
     // Cancello i post dell'utente
-    await Post.deleteMany({ user: req.user.id });
+    //await Post.deleteMany({ user: req.user.id });
+    await pool.query('DELETE FROM posts WHERE userid = $1', [req.user.id]);
+    // Cancello il profilo dell'utente
+    await pool.query('DELETE FROM profile WHERE userid = $1', [req.user.id]);
+    // Cancello l'utente
+    await pool.query('DELETE FROM users WHERE uid = $1', [req.user.id]);
+    await pool.query('DELETE FROM education WHERE uid = $1', [req.user.id]);
+    await pool.query('DELETE FROM experience WHERE uid = $1', [req.user.id]);
 
-    //Cancello il profilo
+/*     //Cancello il profilo
     await Profile.findOneAndRemove({ user: req.user.id });
 
     //cancello l'utente
-    await User.findOneAndRemove({ _id: req.user.id });
+    await User.findOneAndRemove({ _id: req.user.id }); */
     res.json({ msg: 'Utente eliminato' });
   } catch (error) {
     console.log(error.message);
@@ -192,7 +346,8 @@ router.put(
       description,
     } = req.body;
 
-    const nuovaExp = {
+
+    let nuovaExp = {
       title: title,
       company: company,
       location: location,
@@ -201,17 +356,27 @@ router.put(
       current: current,
       description: description,
     };
-
+    if (nuovaExp.to == null || nuovaExp.to == '') {
+      nuovaExp.to = null;
+    }
+    
     try {
-      const profile = await Profile.findOne({ user: req.user.id });
+      //const profile = await Profile.findOne({ user: req.user.id });
+      let profile = await getProfile(req.user.id);
       if (!profile) {
         return res.status(400).json({ msg: 'Profilo non trovato' });
       }
-      profile.experience.unshift(nuovaExp);
+/*       profile.experience.unshift(nuovaExp);
       //unishift fa il push all'inizio dell'array
+      await profile.save(); */
+      
+      await pool.query(
+        'INSERT INTO experience (uid, title, company, location, from_date, to_date, current, description) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+        [req.user.id, nuovaExp.title, nuovaExp.company, nuovaExp.location, nuovaExp.from, nuovaExp.to, nuovaExp.current, nuovaExp.description]
+      );
 
-      await profile.save();
 
+      profile = await getProfile(req.user.id);
       res.json(profile);
     } catch (error) {
       console.error(error.message);
@@ -225,14 +390,20 @@ router.put(
 // @access Private
 router.delete('/experience/:exp_id', auth, async (req, res) => {
   try {
-    const foundProfile = await Profile.findOne({ user: req.user.id });
+    //const foundProfile = await Profile.findOne({ user: req.user.id });
 
-    foundProfile.experience = foundProfile.experience.filter(
+
+  /*   foundProfile.experience = foundProfile.experience.filter(
       (exp) => exp._id.toString() !== req.params.exp_id
     );
 
-    await foundProfile.save();
-    return res.status(200).json(foundProfile);
+    await foundProfile.save(); */
+
+    //elimino esperienza dal db tramite eid
+    await pool.query('DELETE FROM experience WHERE eid = $1', [req.params.exp_id]);
+    const profile = await getProfile(req.user.id);
+
+    return res.status(200).json(profile);
   } catch (error) {
     console.error(error);
     return res.status(500).json({ msg: 'Server error' });
@@ -281,16 +452,26 @@ router.put(
       description: description,
     };
 
+    if (nuovaEdu.to == null || nuovaEdu.to == '') {
+      nuovaEdu.to = null;
+    }
     try {
-      const profile = await Profile.findOne({ user: req.user.id });
+      //const profile = await Profile.findOne({ user: req.user.id });
+      let profile = await getProfile(req.user.id);
       if (!profile) {
         return res.status(400).json({ msg: 'Profilo non trovato' });
       }
-      profile.education.unshift(nuovaEdu);
+      //profile.education.unshift(nuovaEdu);
       //unishift fa il push all'inizio dell'array
+      //await profile.save();
 
-      await profile.save();
 
+      //aggiungo educazione al db
+      await pool.query(
+        'INSERT INTO education (uid, school, degree, fieldofstudy, from_date, to_date, current, description) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+        [req.user.id, nuovaEdu.school, nuovaEdu.degree, nuovaEdu.fieldofstudy, nuovaEdu.from, nuovaEdu.to, nuovaEdu.current, nuovaEdu.description]
+      );
+      profile = await getProfile(req.user.id);
       res.json(profile);
     } catch (error) {
       console.error(error.message);
@@ -304,12 +485,16 @@ router.put(
 // @access Private
 router.delete('/education/:edu_id', auth, async (req, res) => {
   try {
-    const foundProfile = await Profile.findOne({ user: req.user.id });
+    /* const foundProfile = await Profile.findOne({ user: req.user.id });
     foundProfile.education = foundProfile.education.filter(
       (edu) => edu._id.toString() !== req.params.edu_id
-    );
-    await foundProfile.save();
-    return res.status(200).json(foundProfile);
+    ); 
+    await foundProfile.save();*/
+    //elimino educazione dal db tramite eid
+    await pool.query('DELETE FROM education WHERE eid = $1', [req.params.edu_id]);
+    const profile = await getProfile(req.user.id);
+
+    return res.status(200).json(profile);
   } catch (error) {
     console.error(error);
     return res.status(500).json({ msg: 'Server error' });

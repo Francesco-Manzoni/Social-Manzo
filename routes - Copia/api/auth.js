@@ -1,21 +1,19 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../../middleware/auth');
+const User = require('../../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const config = require('config');
 const { check, validationResult } = require('express-validator'); //https://express-validator.github.io/docs/
-const pool = require('../../config/db');
 
 // @route GET api/auth
 // @desc test route
 // @access Public
 router.get('/', auth, async (req, res) => {
   try {
-    //const user = await User.findById(req.user.id).select('-password'); //ottengo l'utente partendo dall'id che viene passato nella richiesta eccetto la password
-    const user = await pool.query('SELECT * FROM users WHERE uid = $1', [req.user.id]);
-    delete user.rows[0].password;
-    res.json(user.rows[0]);
+    const user = await User.findById(req.user.id).select('-password'); //ottengo l'utente partendo dall'id che viene passato nella richiesta eccetto la password
+    res.json(user);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
@@ -40,8 +38,7 @@ router.post(
     const { email, password } = req.body;
     try {
       //Controllo se l'utente esiste
-      const user_query = await pool.query('SELECT * FROM users WHERE email = $1', [email])
-      const user = user_query.rows[0];
+      let user = await User.findOne({ email });
       if (!user) {
         return res
           .status(400)
@@ -60,7 +57,7 @@ router.post(
 
       const payload = {
         user: {
-          id: user.uid,
+          id: user.id,
         },
       };
 

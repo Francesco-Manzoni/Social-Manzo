@@ -5,10 +5,9 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const config = require('config');
 const { check, validationResult } = require('express-validator'); //https://express-validator.github.io/docs/
-//const {pool} = require("pg");
-const pool = require('../../config/db');
 
-
+//richiamo il modello dell'utente
+const User = require('../../models/User');
 const { use } = require('./auth');
 
 // @route POST api/users
@@ -32,13 +31,12 @@ router.post(
     const { name, email, password } = req.body;
     try {
       //Controllo se l'utente esiste
-      //let user = await User.findOne({ email }); //TODO
-      const user = await pool.query('SELECT * FROM users WHERE email = $1', [email])
-      if (user.rows.length > 0) {
+      let user = await User.findOne({ email });
+      if (user) {
         return res
           .status(400)
           .json({ errors: [{ msg: 'Utente già esistente' }] });
-      } 
+      }
       //ottengo user gravatar
       const avatar = gravatar.url(email, {
         s: '200', //default size
@@ -46,27 +44,30 @@ router.post(
         d: 'mm', //immagine di default
       });
 
-    
+      //Creo una nuova instanza dell'utente (non è ancora salvato)
+      user = new User({
+        name,
+        email,
+        avatar,
+        password,
+      });
+
       //Cripto la password
       const salt = await bcrypt.genSalt(10);
 
-      const password_salt = await bcrypt.hash(password, salt); 
+      user.password = await bcrypt.hash(password, salt);
 
       //salvo l'utente nel DB
-      //await user.save();
-      const text = `INSERT INTO users (name, email, avatar, password) VALUES ($1, $2, $3, $4) RETURNING uid`;
-      const values = [name, email, avatar, password_salt];
-      const query = await pool.query(text, values);
+      await user.save();
 
-      
       //Return jsonwebtoken  (nel frontend voglio che l'utente venga loggato subito con il token)
       // https://github.com/auth0/node-jsonwebtoken
 
-       const payload = {
+      const payload = {
         user: {
-          id: query.rows[0].uid,
+          id: user.id,
         },
-      }; 
+      };
 
       jwt.sign(
         payload,

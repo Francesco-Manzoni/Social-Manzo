@@ -4,11 +4,12 @@ import PropTypes from 'prop-types';
 
 const ProfileItem = ({
   profile: {
-    user: { _id, name, avatar },
-    status,
+    userid,
     company,
     location,
+    status,
     skills,
+    user: {id, name, avatar },
   },
 }) => {
   return (
@@ -21,7 +22,7 @@ const ProfileItem = ({
           {status} {company && <span>presso {company}</span>}
         </p>
         <p className='my-1'>{location && <span>{location}</span>}</p>
-        <Link to={`/profile/${_id}`} className='btn btn-primary'>
+        <Link to={`/profile/${userid}`} className='btn btn-primary'>
           Apri Profilo
         </Link>
       </div>
